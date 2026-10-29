@@ -3,6 +3,51 @@ const mainNav = document.querySelector(".main-nav");
 const homeHeader = document.querySelector(".home-header");
 const hero = document.querySelector(".hero");
 
+const revealTargets = Array.from(document.querySelectorAll(
+  ".intro-grid, .home-about-images, .service-card, .process-top, .step, .engagement, .case-feature, " +
+  ".quote-heading, .quote-wrap, .trusted, .industry-grid article, .location-grid article, " +
+  ".contact-copy, .contact-form, .page-hero-inner, .about-hero-copy, .about-image-grid, " +
+  ".page-intro, .page-heading, .page-stat-grid article, .detail-card, .case-card, " +
+  ".process-list li, .image-card, .partner-grid article, .page-cta",
+));
+
+if (revealTargets.length && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  revealTargets.forEach((element, index) => {
+    element.classList.add("reveal-on-scroll");
+    element.style.setProperty("--reveal-delay", `${(index % 5) * 55}ms`);
+  });
+
+  document.documentElement.classList.add("has-motion");
+
+  let pendingRevealTargets = revealTargets;
+  let revealCheckScheduled = false;
+  const revealVisibleTargets = () => {
+    if (revealCheckScheduled) return;
+    revealCheckScheduled = true;
+
+    window.requestAnimationFrame(() => {
+      revealCheckScheduled = false;
+      pendingRevealTargets = pendingRevealTargets.filter((element) => {
+        const bounds = element.getBoundingClientRect();
+        if (bounds.top < window.innerHeight - 36 && bounds.bottom > 0) {
+          element.classList.add("is-visible");
+          return false;
+        }
+        return true;
+      });
+
+      if (!pendingRevealTargets.length) {
+        window.removeEventListener("scroll", revealVisibleTargets);
+        window.removeEventListener("resize", revealVisibleTargets);
+      }
+    });
+  };
+
+  revealVisibleTargets();
+  window.addEventListener("scroll", revealVisibleTargets, { passive: true });
+  window.addEventListener("resize", revealVisibleTargets);
+}
+
 if (homeHeader && hero) {
   const updateHomeHeaderBackground = () => {
     homeHeader.classList.toggle("solid-background", hero.getBoundingClientRect().bottom <= homeHeader.offsetHeight);
@@ -13,31 +58,59 @@ if (homeHeader && hero) {
   window.addEventListener("resize", updateHomeHeaderBackground);
 }
 
+const updateScrollProgress = () => {
+  const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const progress = scrollableHeight > 0 ? (window.scrollY / scrollableHeight) * 100 : 0;
+  document.documentElement.style.setProperty("--scroll-progress", `${progress}%`);
+};
+
+updateScrollProgress();
+window.addEventListener("scroll", updateScrollProgress, { passive: true });
+window.addEventListener("resize", updateScrollProgress);
+
 if (menuToggle && mainNav) {
+  let menuScrollY = 0;
+  let previousBodyStyles;
+  const setMenuOpen = (isOpen) => {
+    if (isOpen) {
+      menuScrollY = window.scrollY;
+      previousBodyStyles = {
+        position: document.body.style.position,
+        top: document.body.style.top,
+        width: document.body.style.width,
+      };
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${menuScrollY}px`;
+      document.body.style.width = "100%";
+    }
+
+    menuToggle.setAttribute("aria-expanded", String(isOpen));
+    menuToggle.setAttribute("aria-label", isOpen ? "Close navigation" : "Open navigation");
+    mainNav.classList.toggle("open", isOpen);
+    document.body.classList.toggle("menu-open", isOpen);
+    document.documentElement.classList.toggle("menu-open", isOpen);
+
+    if (!isOpen && previousBodyStyles) {
+      document.body.style.position = previousBodyStyles.position;
+      document.body.style.top = previousBodyStyles.top;
+      document.body.style.width = previousBodyStyles.width;
+      previousBodyStyles = undefined;
+      window.scrollTo(0, menuScrollY);
+    }
+  };
+
   menuToggle.addEventListener("click", () => {
-    const isOpen = menuToggle.getAttribute("aria-expanded") === "true";
-    menuToggle.setAttribute("aria-expanded", String(!isOpen));
-    menuToggle.setAttribute("aria-label", isOpen ? "Open navigation" : "Close navigation");
-    mainNav.classList.toggle("open", !isOpen);
-    document.body.classList.toggle("menu-open", !isOpen);
+    setMenuOpen(menuToggle.getAttribute("aria-expanded") !== "true");
   });
 
   mainNav.querySelectorAll("a").forEach((link) => {
-    link.addEventListener("click", () => {
-      menuToggle.setAttribute("aria-expanded", "false");
-      menuToggle.setAttribute("aria-label", "Open navigation");
-      mainNav.classList.remove("open");
-      document.body.classList.remove("menu-open");
-    });
+    link.addEventListener("click", () => setMenuOpen(false));
   });
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && menuToggle.getAttribute("aria-expanded") === "true") {
-      menuToggle.setAttribute("aria-expanded", "false");
-      menuToggle.setAttribute("aria-label", "Open navigation");
-      mainNav.classList.remove("open");
-      document.body.classList.remove("menu-open");
-      menuToggle.focus();
+      setMenuOpen(false);
+      menuToggle.focus({ preventScroll: true });
     }
   });
 }
