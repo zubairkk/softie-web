@@ -4,48 +4,55 @@ const homeHeader = document.querySelector(".home-header");
 const hero = document.querySelector(".hero");
 
 const revealTargets = Array.from(document.querySelectorAll(
-  ".intro-grid, .home-about-images, .service-card, .process-top, .step, .engagement, .case-feature, " +
-  ".quote-heading, .quote-wrap, .trusted, .industry-grid article, .location-grid article, " +
-  ".contact-copy, .contact-form, .page-hero-inner, .about-hero-copy, .about-image-grid, " +
-  ".page-intro, .page-heading, .page-stat-grid article, .detail-card, .case-card, " +
-  ".process-list li, .image-card, .partner-grid article, .page-cta",
+  ".hero-copy, .hero-art, .hero-scroll, .intro-grid, .home-about-images, .trusted-copy, " +
+  ".trusted-list > div, .section-kicker, .section-heading, .service-card, .process-top, " +
+  ".step, .engagement, .case-feature, .quote-heading, .quote-wrap, .industry-grid article, " +
+  ".location-grid article, .contact-copy, .contact-form, .page-hero-inner, .about-hero-copy, " +
+  ".about-image-grid, .page-intro, .page-heading, .page-stat-grid article, .detail-card, " +
+  ".case-card, .process-list li, .image-card, .partner-grid article, .page-cta, " +
+  ".site-footer .footer-brand, .site-footer .footer-links, .site-footer .footer-project, " +
+  ".site-footer .footer-bottom",
 ));
 
 if (revealTargets.length && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
   revealTargets.forEach((element, index) => {
     element.classList.add("reveal-on-scroll");
-    element.style.setProperty("--reveal-delay", `${(index % 5) * 55}ms`);
+    element.classList.add(index % 2 === 0 ? "reveal-from-left" : "reveal-from-right");
+    element.style.setProperty("--reveal-delay", `${(index % 4) * 70}ms`);
   });
 
   document.documentElement.classList.add("has-motion");
 
-  let pendingRevealTargets = revealTargets;
-  let revealCheckScheduled = false;
-  const revealVisibleTargets = () => {
-    if (revealCheckScheduled) return;
-    revealCheckScheduled = true;
-
-    window.requestAnimationFrame(() => {
-      revealCheckScheduled = false;
-      pendingRevealTargets = pendingRevealTargets.filter((element) => {
-        const bounds = element.getBoundingClientRect();
-        if (bounds.top < window.innerHeight - 36 && bounds.bottom > 0) {
-          element.classList.add("is-visible");
-          return false;
+  if ("IntersectionObserver" in window) {
+    const revealObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
         }
-        return true;
       });
+    }, { rootMargin: "0px 0px -7% 0px", threshold: 0.08 });
 
-      if (!pendingRevealTargets.length) {
-        window.removeEventListener("scroll", revealVisibleTargets);
-        window.removeEventListener("resize", revealVisibleTargets);
-      }
-    });
+    revealTargets.forEach((element) => revealObserver.observe(element));
+  } else {
+    revealTargets.forEach((element) => element.classList.add("is-visible"));
+  }
+}
+
+const caseTrack = document.querySelector(".home-case-grid");
+if (caseTrack) {
+  const caseCards = Array.from(caseTrack.querySelectorAll(".case-feature"));
+  const caseScrollAmount = () => {
+    const gap = parseFloat(getComputedStyle(caseTrack).columnGap) || 0;
+    return (caseCards[0]?.getBoundingClientRect().width || 0) + gap;
   };
 
-  revealVisibleTargets();
-  window.addEventListener("scroll", revealVisibleTargets, { passive: true });
-  window.addEventListener("resize", revealVisibleTargets);
+  document.querySelector(".case-carousel-prev")?.addEventListener("click", () => {
+    caseTrack.scrollBy({ left: -caseScrollAmount(), behavior: "smooth" });
+  });
+  document.querySelector(".case-carousel-next")?.addEventListener("click", () => {
+    caseTrack.scrollBy({ left: caseScrollAmount(), behavior: "smooth" });
+  });
 }
 
 if (homeHeader && hero) {
@@ -248,12 +255,16 @@ let testimonialIndex = 0;
 
 function showTestimonial(index) {
   testimonialIndex = (index + testimonials.length) % testimonials.length;
-  const testimonial = testimonials[testimonialIndex];
-  document.querySelector("#quote-text").textContent = testimonial.quote;
-  document.querySelector(".quote-avatar").textContent = testimonial.initials;
-  document.querySelector(".quote-person strong").textContent = testimonial.name;
-  document.querySelector(".quote-person small").textContent = testimonial.role;
-  document.querySelector("#quote-count").textContent = `${String(testimonialIndex + 1).padStart(2, "0")} / ${String(testimonials.length).padStart(2, "0")}`;
+  [0, 1].forEach((offset) => {
+    const testimonial = testimonials[(testimonialIndex + offset) % testimonials.length];
+    const cardNumber = offset + 1;
+    document.querySelector(`#quote-text-${cardNumber}`).textContent = testimonial.quote;
+    document.querySelector(`#quote-avatar-${cardNumber}`).textContent = testimonial.initials;
+    document.querySelector(`#quote-name-${cardNumber}`).textContent = testimonial.name;
+    document.querySelector(`#quote-role-${cardNumber}`).textContent = testimonial.role;
+  });
+  document.querySelector("#quote-count-current").textContent = String(testimonialIndex + 1).padStart(2, "0");
+  document.querySelector("#quote-count-total").textContent = String(testimonials.length).padStart(2, "0");
 }
 
 document.querySelector(".quote-prev")?.addEventListener("click", () => showTestimonial(testimonialIndex - 1));
