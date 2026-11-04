@@ -9,8 +9,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=20261104-hero-color-grade-29">
-    <script src="script.js?v=20261104-testimonials-13" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20261104-service-slider-33">
+    <script src="script.js?v=20261104-parallax-16" defer></script>
   </head>
   <body>
     <header class="site-header home-header">
@@ -37,13 +37,7 @@
 
     <main>
       <section class="hero" id="home">
-        <div class="hero-backdrop" aria-hidden="true">
-          <!-- Replace banner-background.mp4 with another MP4 to change the hero video. -->
-          <video class="hero-video" autoplay muted loop playsinline preload="auto">
-            <source src="banner-background.mp4" type="video/mp4">
-          </video>
-          <span></span><span></span><span></span>
-        </div>
+        <div class="hero-backdrop" aria-hidden="true"></div>
         <div class="hero-copy">
           <div class="eyebrow"><span class="eyebrow-dot"></span> DIGITAL PRODUCT STUDIO</div>
           <h1>Transforming Ideas,<br>Into Digital <span class="blue-text">Excellence</span></h1>
@@ -54,6 +48,31 @@
             <a class="button hero-secondary" href="https://calendly.com/grapners-info/30min" target="_blank" rel="noreferrer">Book a call</a>
           </div>
         </div>
+        <section class="hero-service-slider" aria-label="Our services" aria-roledescription="carousel">
+          <div class="hero-slider-frame">
+            <img class="hero-slider-image" src="https://grapners.com/images/services/banners/software.webp" alt="Custom software development visualization">
+            <span class="hero-slider-kicker"><span></span> WHAT WE BUILD</span>
+            <div class="hero-slider-caption">
+              <span class="hero-slider-index">01 / 06</span>
+              <h2 class="hero-slider-title">Custom Software Development</h2>
+              <p class="hero-slider-description">Purpose-built digital tools, designed around the way your business works.</p>
+              <a href="services.html">Explore service <span aria-hidden="true">↗</span></a>
+            </div>
+          </div>
+          <div class="hero-slider-controls">
+            <button type="button" class="hero-slider-prev" aria-label="Previous service">←</button>
+            <div class="hero-slider-dots" aria-label="Choose a service">
+              <button type="button" aria-label="Show Custom Software Development" aria-current="true"></button>
+              <button type="button" aria-label="Show Web Application Development"></button>
+              <button type="button" aria-label="Show Mobile App Development"></button>
+              <button type="button" aria-label="Show Cloud Solutions"></button>
+              <button type="button" aria-label="Show UI/UX Design"></button>
+              <button type="button" aria-label="Show AI & Machine Learning Solutions"></button>
+            </div>
+            <button type="button" class="hero-slider-next" aria-label="Next service">→</button>
+            <button type="button" class="hero-slider-pause" aria-label="Pause service slider">Ⅱ</button>
+          </div>
+        </section>
         <a class="hero-scroll" href="#about"><span></span> SCROLL TO EXPLORE</a>
       </section>
 

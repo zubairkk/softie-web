@@ -270,6 +270,130 @@ function showTestimonial(index) {
 document.querySelector(".quote-prev")?.addEventListener("click", () => showTestimonial(testimonialIndex - 1));
 document.querySelector(".quote-next")?.addEventListener("click", () => showTestimonial(testimonialIndex + 1));
 
+const serviceSlider = document.querySelector(".hero-service-slider");
+if (serviceSlider) {
+  const slides = [
+    {
+      title: "Custom Software Development",
+      description: "Purpose-built digital tools, designed around the way your business works.",
+      image: "https://grapners.com/images/services/banners/software.webp",
+      alt: "Custom software development visualization",
+    },
+    {
+      title: "Web Application Development",
+      description: "Responsive web products that help customers and teams get more done.",
+      image: "https://grapners.com/images/services/banners/web.webp",
+      alt: "Web application development visualization",
+    },
+    {
+      title: "Mobile App Development",
+      description: "Useful, intuitive mobile experiences for the moments that matter.",
+      image: "https://grapners.com/images/services/banners/app2.webp",
+      alt: "Mobile app development visualization",
+    },
+    {
+      title: "Cloud Solutions",
+      description: "Secure cloud foundations that help your product grow with confidence.",
+      image: "https://grapners.com/images/services/banners/cloud.webp",
+      alt: "Cloud solutions visualization",
+    },
+    {
+      title: "UI/UX Design",
+      description: "Thoughtful product experiences that feel clear from the first interaction.",
+      image: "https://grapners.com/images/services/banners/uiux.webp",
+      alt: "User experience and interface design visualization",
+    },
+    {
+      title: "AI & Machine Learning Solutions",
+      description: "Practical AI features that turn useful data into smarter workflows.",
+      image: "https://grapners.com/images/services/banners/ai.webp",
+      alt: "Artificial intelligence and machine learning visualization",
+    },
+  ];
+  const sliderImage = serviceSlider.querySelector(".hero-slider-image");
+  const title = serviceSlider.querySelector(".hero-slider-title");
+  const description = serviceSlider.querySelector(".hero-slider-description");
+  const slideIndex = serviceSlider.querySelector(".hero-slider-index");
+  const dots = Array.from(serviceSlider.querySelectorAll(".hero-slider-dots button"));
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let currentSlide = 0;
+  let timer;
+  let slideTransition;
+  let isPaused = reducedMotion;
+
+  const showServiceSlide = (index) => {
+    currentSlide = (index + slides.length) % slides.length;
+    const slide = slides[currentSlide];
+    window.clearTimeout(slideTransition);
+    serviceSlider.classList.add("is-transitioning");
+    slideTransition = window.setTimeout(() => {
+      sliderImage.src = slide.image;
+      sliderImage.alt = slide.alt;
+      title.textContent = slide.title;
+      description.textContent = slide.description;
+      slideIndex.textContent = `${String(currentSlide + 1).padStart(2, "0")} / ${String(slides.length).padStart(2, "0")}`;
+      dots.forEach((dot, dotIndex) => {
+        if (dotIndex === currentSlide) dot.setAttribute("aria-current", "true");
+        else dot.removeAttribute("aria-current");
+      });
+      serviceSlider.classList.remove("is-transitioning");
+    }, 180);
+  };
+  const stopServiceTimer = () => window.clearInterval(timer);
+  const startServiceTimer = () => {
+    stopServiceTimer();
+    if (!isPaused && !document.hidden) {
+      timer = window.setInterval(() => showServiceSlide(currentSlide + 1), 4800);
+    }
+  };
+  const pauseButton = serviceSlider.querySelector(".hero-slider-pause");
+  const setPaused = (paused) => {
+    isPaused = paused;
+    pauseButton.setAttribute("aria-label", paused ? "Play service slider" : "Pause service slider");
+    pauseButton.textContent = paused ? "▶" : "Ⅱ";
+    startServiceTimer();
+  };
+
+  serviceSlider.querySelector(".hero-slider-prev").addEventListener("click", () => showServiceSlide(currentSlide - 1));
+  serviceSlider.querySelector(".hero-slider-next").addEventListener("click", () => showServiceSlide(currentSlide + 1));
+  dots.forEach((dot, index) => dot.addEventListener("click", () => showServiceSlide(index)));
+  pauseButton.addEventListener("click", () => setPaused(!isPaused));
+  serviceSlider.addEventListener("mouseenter", stopServiceTimer);
+  serviceSlider.addEventListener("mouseleave", startServiceTimer);
+  serviceSlider.addEventListener("focusin", stopServiceTimer);
+  serviceSlider.addEventListener("focusout", (event) => {
+    if (!serviceSlider.contains(event.relatedTarget)) startServiceTimer();
+  });
+  document.addEventListener("visibilitychange", startServiceTimer);
+  startServiceTimer();
+}
+
+const parallaxImages = Array.from(document.querySelectorAll(
+  ".home-about-images img, .about-image-grid img, .service-card .service-image, " +
+  ".image-card > img, .case-image-wrap > img, .product-detail-visual > img",
+));
+if (parallaxImages.length && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  let parallaxFrame = 0;
+  const updateParallax = () => {
+    parallaxFrame = 0;
+    const viewportCenter = window.innerHeight / 2;
+    parallaxImages.forEach((image) => {
+      const bounds = image.getBoundingClientRect();
+      if (bounds.bottom < -80 || bounds.top > window.innerHeight + 80) return;
+      const distanceFromCenter = viewportCenter - (bounds.top + bounds.height / 2);
+      const offset = Math.max(-14, Math.min(14, distanceFromCenter * .035));
+      image.style.setProperty("--parallax-offset", `${offset.toFixed(1)}px`);
+    });
+  };
+  const scheduleParallax = () => {
+    if (!parallaxFrame) parallaxFrame = window.requestAnimationFrame(updateParallax);
+  };
+
+  scheduleParallax();
+  window.addEventListener("scroll", scheduleParallax, { passive: true });
+  window.addEventListener("resize", scheduleParallax);
+}
+
 document.querySelector(".contact-form")?.addEventListener("submit", (event) => {
   event.preventDefault();
   const form = event.currentTarget;
